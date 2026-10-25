@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #0a0a0c;
+  --color-ink: #ececf1;
+  --color-ink-muted: #8b8b94;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    /* No pull-to-refresh or rubber-band scrolling while counting. */
+    overscroll-behavior: none;
+  }
+
+  body {
+    @apply overflow-hidden bg-surface text-ink antialiased;
+  }
+}

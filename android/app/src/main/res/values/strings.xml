@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Flow Count</string>
+    <string name="title_activity_main">Flow Count</string>
+    <string name="package_name">com.deeprionlabs.flowcount</string>
+    <string name="custom_url_scheme">com.deeprionlabs.flowcount</string>
+</resources>
