@@ -51,8 +51,8 @@ export function CounterSurface({ count, onIncrement }: CounterSurfaceProps) {
         aria-hidden
         style={[styles.hint, { paddingBottom: insets.bottom + 32 }, hintStyle]}
       >
-        <Text style={styles.hintText}>Saymak için dokun</Text>
-        <Text style={styles.hintText}>Taşımak için basılı tut</Text>
+        <Text style={styles.hintText}>Tap to count</Text>
+        <Text style={styles.hintText}>Hold to move</Text>
       </Animated.View>
 
       <CounterCircle

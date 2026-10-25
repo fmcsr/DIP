@@ -186,7 +186,7 @@ export function CounterCircle({ count, onIncrement, diameter, bounds }: CounterC
         accessible
         focusable
         role="button"
-        aria-label="Sayacı artır"
+        aria-label="Increase count"
         aria-valuetext={String(count)}
         accessibilityActions={ACTIVATE_ACTION}
         onAccessibilityAction={handleAccessibilityAction}
