@@ -6,11 +6,23 @@ import { Platform } from 'react-native'
  * key-press haptic on Android (Expo recommends it over driving the vibration motor directly).
  */
 export function vibrateTap(): void {
-  const tick =
+  play(
     Platform.OS === 'android'
       ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Virtual_Key)
-      : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
+  )
+}
 
-  // A missing tick is harmless; it must never interrupt counting.
+/** Firmer tick when the counter is picked up to be moved. */
+export function vibratePickup(): void {
+  play(
+    Platform.OS === 'android'
+      ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Long_Press)
+      : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
+  )
+}
+
+// A missing tick is harmless; it must never interrupt counting.
+function play(tick: Promise<void>): void {
   tick.catch(() => {})
 }

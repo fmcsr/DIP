@@ -28,6 +28,14 @@
           "backgroundColor": "#0a0a0c",
           "image": "./assets/splash-blank.png"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "buildReactNativeFromSource": true
+          }
+        }
       ]
     ]
   }
