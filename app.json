@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Flow Count",
+    "slug": "flow-count",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0a0a0c",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.deeprionlabs.flowcount"
+    },
+    "android": {
+      "package": "com.deeprionlabs.flowcount",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0a0a0c",
+          "image": "./assets/splash-blank.png"
+        }
+      ]
+    ]
+  }
+}

@@ -1,8 +1,10 @@
+import { StatusBar } from 'expo-status-bar'
 import { useCallback, useState } from 'react'
-import { CounterSurface } from './components/CounterSurface.tsx'
-import { vibrateTap } from './lib/haptics.ts'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { CounterSurface } from './components/CounterSurface'
+import { vibrateTap } from './lib/haptics'
 
-function App() {
+export default function App() {
   const [count, setCount] = useState(0)
 
   const increment = useCallback(() => {
@@ -11,11 +13,9 @@ function App() {
   }, [])
 
   return (
-    <main className="relative h-dvh w-full overflow-hidden">
-      <h1 className="sr-only">Flow Count</h1>
+    <SafeAreaProvider>
+      <StatusBar style="light" />
       <CounterSurface count={count} onIncrement={increment} />
-    </main>
+    </SafeAreaProvider>
   )
 }
-
-export default App

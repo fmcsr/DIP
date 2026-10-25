@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Same as the app surface (src/index.css), so launch and window backgrounds never flash light. -->
-    <color name="app_background">#0A0A0C</color>
-</resources>

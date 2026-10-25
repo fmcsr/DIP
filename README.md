@@ -2,11 +2,11 @@
 
 Meditasyon, nefes çalışması ve genel takip için sade, dikkat dağıtmayan bir mobil sayaç uygulaması (iOS ve Android). Ekranın herhangi bir yerine dokunmak sayıyı bir artırır.
 
-Arayüz React + TypeScript + Vite + Tailwind CSS ile yazılır; [Capacitor](https://capacitorjs.com) ile yerel iOS ve Android uygulamasına paketlenir.
+React Native + [Expo](https://expo.dev) (SDK 58) ve TypeScript ile yazılır.
 
 ## Gereksinimler
 
-- Node.js 20.19+ veya 22.12+
+- Node.js 22.13+ (ya da 24.3+)
 - iOS için Xcode
 - Android için Android Studio
 
@@ -17,36 +17,39 @@ npm install
 npm run ios
 ```
 
-`npm run ios` arayüzü derler, `ios/` projesine aktarır ve uygulamanın hangi simülatörde ya da cihazda açılacağını sorar. Android için `npm run android` kullanılır. Bu komut Java ister; sistemde Java yoksa Android Studio'nun Java'sı gösterilebilir:
+`npm run ios` yerel iOS projesini üretir, derler ve simülatörde ya da bağlı cihazda açar; geliştirme sunucusu da başlar ve koddaki değişiklikler uygulamaya anında yansır. Android için `npm run android` kullanılır. Bu komut Java ister; sistemde Java yoksa Android Studio'nun Java'sı gösterilebilir:
 
 ```bash
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ```
 
-Projeyi Xcode ya da Android Studio'da açmak için `npx cap open ios` veya `npx cap open android`. Gerçek bir iPhone'a yüklemek için Xcode'da **Signing & Capabilities** altından geliştirici ekibi seçilmelidir.
+`ios/` ve `android/` klasörleri depoya girmez: her derlemede `app.json`'dan yeniden üretilir (Continuous Native Generation). Yerel ayarlar bu klasörlerde değil, `app.json` ve Expo eklentileriyle yapılır.
 
-| Komut             | Açıklama                                                         |
-| ----------------- | ---------------------------------------------------------------- |
-| `npm run ios`     | Derler, iOS projesine aktarır, simülatörde ya da cihazda çalıştırır |
-| `npm run android` | Aynısını Android için yapar                                      |
-| `npm run build`   | Tür denetimi ve arayüz derlemesi (`dist/`)                       |
-| `npm run lint`    | Oxlint                                                           |
+| Komut               | Açıklama                                                              |
+| ------------------- | --------------------------------------------------------------------- |
+| `npm run ios`       | iOS geliştirme derlemesi; simülatörde ya da cihazda çalıştırır        |
+| `npm run android`   | Aynısını Android için yapar                                           |
+| `npm start`         | Yalnızca geliştirme sunucusunu başlatır (yüklü geliştirme derlemesi için) |
+| `npm run typecheck` | TypeScript denetimi                                                   |
+| `npm run lint`      | Oxlint                                                                |
 
-Arayüzdeki değişiklikler yerel projelere `npm run build && npx cap sync` ile (ya da doğrudan `npm run ios` / `npm run android` ile) aktarılır.
+Geliştirme sunucusu olmadan çalışan bir derleme için: `npx expo run:ios --configuration Release` ya da `npx expo run:android --variant release`.
 
 ## Kullanım
 
 - **Dokunma:** Ekranın herhangi bir yerine dokun.
-- **Dokunsal geri bildirim:** Her sayımda hafif bir titreşim; iOS'ta Taptic Engine'in en hafif darbesi, Android'de kısa ve düşük şiddetli bir titreşim.
-- **Erişilebilirlik:** Sayma yüzeyi VoiceOver ve TalkBack için "Sayacı artır" adlı tek bir düğmedir; yeni değer otomatik okunur. Harici klavyede Boşluk veya Enter ile sayılır, odaklanınca ekran kenarında bir çerçeve görünür; basılı tutulan tuş yalnızca bir kez sayar.
+- **Dokunsal geri bildirim:** Her sayımda hafif bir tık; iOS'ta Taptic Engine'in en hafif darbesi, Android'de sistemin tuş basma geri bildirimi.
+- **Erişilebilirlik:** Sayma yüzeyi VoiceOver ve TalkBack için "Sayacı artır" adlı tek bir düğmedir; odaklanınca güncel sayı okunur, her yeni değer duyurulur. Harici klavyede Tab ile odaklanıp Enter ya da Boşluk ile sayılır; Android'de kenarda bir odak çerçevesi, iOS'ta Tam Klavye Erişimi'nin kendi çerçevesi görünür.
 
 ## Proje yapısı
 
-| Yol                   | İçerik                                                           |
-| --------------------- | ---------------------------------------------------------------- |
-| `src/`                | Uygulama arayüzü (React)                                         |
-| `ios/`, `android/`    | Capacitor'ın yerel iOS ve Android projeleri                      |
-| `capacitor.config.ts` | Uygulama kimliği (`com.deeprionlabs.flowcount`), adı, yerel ayarlar |
+| Yol                                 | İçerik                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| `src/App.tsx`                       | Sayaç durumu ve dokunsal geri bildirim                                    |
+| `src/components/CounterSurface.tsx` | Tam ekran sayma yüzeyi, sayı ve ipucu                                     |
+| `src/lib/`                          | Dokunsal geri bildirim ve "Hareketi Azalt" yardımcıları                    |
+| `src/theme.ts`                      | Renkler                                                                   |
+| `app.json`                          | Uygulama adı, kimliği (`com.deeprionlabs.flowcount`), açılış ekranı, yönler |
 
 ## Yol haritası
 
