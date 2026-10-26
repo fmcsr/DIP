@@ -37,14 +37,20 @@ export function mix(from: Rgb, to: Rgb, amount: number): Rgb {
   ]
 }
 
+// How far from gray a color's tint may reach; neon colors go well past it, softer ones stay below.
+const MAX_TINT_SPREAD = 80
+
 /**
  * Leans `base` toward the hue of `color` without changing how light it is: only what sets the
- * color apart from gray is added, so neutral colors leave the base as it is.
+ * color apart from gray is added, so neutral colors leave the base as it is. That difference is
+ * capped, so neon colors tint the backgrounds as faintly as the softer ones.
  */
 function tinted(base: Rgb, color: Rgb, amount: number): Rgb {
   const gray = (color[0] + color[1] + color[2]) / 3
+  const spread = Math.max(...color.map((value) => Math.abs(value - gray)))
+  const strength = amount * Math.min(1, MAX_TINT_SPREAD / spread)
   const channel = (index: 0 | 1 | 2) =>
-    Math.min(Math.max(Math.round(base[index] + (color[index] - gray) * amount), 0), 255)
+    Math.min(Math.max(Math.round(base[index] + (color[index] - gray) * strength), 0), 255)
   return [channel(0), channel(1), channel(2)]
 }
 
@@ -57,21 +63,22 @@ function hex(value: string): Rgb {
 }
 
 // Every color has a luminous shade for dark mode and a deeper one that keeps its contrast on the
-// light background, so a color reads as the same color in both modes.
+// light background, so a color reads as the same color in both modes. The top row is neon on
+// dark; on light it takes the same hues, deepened to about 4.5:1 against the background.
 const COLOR_ROWS = [
   [
     { id: 'mono', name: 'Mono', dark: '#e8e8ee', light: '#3c3c43' },
-    { id: 'rose', name: 'Rose', dark: '#fb8fa6', light: '#c93f62' },
-    { id: 'coral', name: 'Coral', dark: '#ff9f85', light: '#cc5a3a' },
-    { id: 'amber', name: 'Amber', dark: '#ffc56b', light: '#b97a10' },
-    { id: 'lime', name: 'Lime', dark: '#c6e27a', light: '#678a1c' },
-    { id: 'emerald', name: 'Emerald', dark: '#6edca8', light: '#1e9462' },
-    { id: 'teal', name: 'Teal', dark: '#62d5cb', light: '#148a80' },
-    { id: 'sky', name: 'Sky', dark: '#7ec9f7', light: '#1f7fbd' },
-    { id: 'blue', name: 'Blue', dark: '#8eaaff', light: '#3d63d6' },
-    { id: 'indigo', name: 'Indigo', dark: '#a8a4ff', light: '#5b4fd3' },
-    { id: 'violet', name: 'Violet', dark: '#c7a3ff', light: '#7c4bd6' },
-    { id: 'orchid', name: 'Orchid', dark: '#ef9de6', light: '#ae3ca8' },
+    { id: 'pink', name: 'Pink', dark: '#ff2e88', light: '#d9046e' },
+    { id: 'orange', name: 'Orange', dark: '#ff6a2b', light: '#c34501' },
+    { id: 'yellow', name: 'Yellow', dark: '#ffd21f', light: '#866d03' },
+    { id: 'lime', name: 'Lime', dark: '#b5ff2b', light: '#547b00' },
+    { id: 'green', name: 'Green', dark: '#2bff88', light: '#068140' },
+    { id: 'aqua', name: 'Aqua', dark: '#1ff2d6', light: '#057d6e' },
+    { id: 'cyan', name: 'Cyan', dark: '#22d3ff', light: '#027995' },
+    { id: 'blue', name: 'Blue', dark: '#4d8dff', light: '#0264fa' },
+    { id: 'indigo', name: 'Indigo', dark: '#7b6cff', light: '#6d4ffe' },
+    { id: 'purple', name: 'Purple', dark: '#b45cff', light: '#a61afe' },
+    { id: 'magenta', name: 'Magenta', dark: '#ff44ee', light: '#c801bb' },
   ],
   [
     { id: 'sand', name: 'Sand', dark: '#dccab0', light: '#8b7354' },
@@ -100,7 +107,7 @@ export type Accent = {
   light: Rgb
 }
 
-/** The picker's grid: bright colors above, softer ones below, one hue family per column. */
+/** The picker's grid: neon colors above, softer ones below, one hue family per column. */
 export const ACCENT_ROWS: readonly (readonly Accent[])[] = COLOR_ROWS.map((row) =>
   row.map(({ id, name, dark, light }, column) => ({
     id,

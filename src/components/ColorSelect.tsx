@@ -37,7 +37,7 @@ type ColorSelectProps = {
 }
 
 /**
- * A drop-down of color swatches in two rows, bright above and soft below, with as many columns
+ * A drop-down of color swatches in two rows, neon above and soft below, with as many columns
  * as fit. It stays open after a pick, so colors can be tried one after another.
  */
 export function ColorSelect({ label, value, open, onToggle, onChange }: ColorSelectProps) {

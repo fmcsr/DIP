@@ -2,7 +2,7 @@
 
 A calm, distraction-free counter for meditation, breathwork and everyday tracking, for iOS and Android. The counter is a circle: tap it to add one, and it answers like a drop falling into still water. Set a target to count in rounds, up or down, and pick the color, the mode and the tap effect that suit the moment.
 
-![The six tap effects around the counter circle: water drop, ripple, zigzag, stardust, glow and lotus](docs/screenshots/tap-effects.png)
+![The six tap effects around the counter circle, each in a different neon color: water drop, ripple, zigzag, stardust, glow and lotus](docs/screenshots/tap-effects.png)
 
 Built with React Native + [Expo](https://expo.dev) (SDK 58) and TypeScript, using React Native Gesture Handler for touch handling and Reanimated for animation.
 
@@ -46,16 +46,16 @@ The first iOS build takes a few minutes longer than usual. React Native is compi
 - **Move:** Hold the circle for half a second. It lifts with a haptic tick and brightens; then drag it anywhere on screen. It stays inside the safe area and clear of the settings button. Holding and dragging never change the count.
 
 <p align="center">
-  <img src="docs/screenshots/settings-target.png" width="300" alt="Settings in dark mode, with the target list open: Off, the last three targets and Custom">
+  <img src="docs/screenshots/settings-color.png" width="300" alt="Settings in dark mode, with the color grid open and Cyan selected">
   &nbsp;
-  <img src="docs/screenshots/settings-color.png" width="300" alt="Settings in light mode, with the color grid open and Sky selected">
+  <img src="docs/screenshots/settings-target.png" width="300" alt="Settings in light mode with Pink selected, and the target list open: Off, the last three targets and Custom">
 </p>
 
 - **Settings:** The gear in the top-right corner opens the settings page; Done closes it, as does a swipe down on iOS or Back on Android. Each setting is a drop-down that opens in place.
   - **Target:** Off (the count just goes on), one of the last three targets you set, or Custom to type a new one up to 99,999 into a field that opens empty. Typing 0 means no target, the same as Off. Picking a target moves it to the top of the list; a fourth new one replaces the target set longest ago. With a target set, the circle shows the current round.
   - **Direction:** Count up from 0 to the target, or down from the target to 0. Reaching the end completes a round: the round number goes up, the count starts over, and the tap effect plays bigger and brighter. Changing the target or the direction restarts the current round and keeps the completed ones.
   - **Reset count:** After a confirmation, the count goes back to the start and the rounds are cleared.
-  - **Color:** A grid of swatches in two rows, bright colors above and softer ones below, with as many columns as fit the screen. The chosen color becomes the theme at once: the circle's edge, the tap effects, the selection marks and a faint tint of the backgrounds. The grid stays open, so colors can be tried one after another.
+  - **Color:** A grid of swatches in two rows, neon colors above and softer ones below, with as many columns as fit the screen. The chosen color becomes the theme at once: the circle's edge, the tap effects, the selection marks and a faint tint of the backgrounds. In light mode each color takes a deeper shade of itself, so it keeps its contrast. The grid stays open, so colors can be tried one after another.
   - **Mode:** Dark or Light. Light mirrors dark: the backgrounds and text swap, while the layout, the chosen color and the effects stay. System dialogs and the keyboard follow the mode.
   - **Tap effect:**
     - **Water drop** (default): the impact flashes, its crater rim spreads to the circle's edge, a train of waves rolls out, and the droplet that bounced back up falls in once more.
