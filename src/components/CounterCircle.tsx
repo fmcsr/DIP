@@ -22,13 +22,13 @@ import Animated, {
 } from 'react-native-reanimated'
 import { scheduleOnRN } from 'react-native-worklets'
 import { vibratePickup } from '../lib/haptics'
-import { colors, ink } from '../theme'
-import { Ripple } from './Ripple'
+import { rgba, useTheme } from '../theme'
+import { type TapEffect, TapEffectView } from './effects'
 
 /** Holding the circle this long picks it up to be moved instead of counting. */
 const LONG_PRESS_MS = 450
-/** Ripples alive at once; when tapping very fast the oldest one is dropped. */
-const MAX_RIPPLES = 12
+/** Tap effects playing at once; when tapping very fast the oldest one is dropped. */
+const MAX_EFFECTS = 12
 /** Share of the circle's width the number may take, and its height cap. */
 const COUNT_WIDTH_RATIO = 0.7
 const COUNT_MAX_HEIGHT_RATIO = 0.52
@@ -44,6 +44,9 @@ const ACTIVATE_ACTION: AccessibilityActionInfo[] = [{ name: 'activate' }]
 
 /** How far the circle's center may move from the screen center. */
 export type DragBounds = { minX: number; maxX: number; minY: number; maxY: number }
+
+/** One tap's effect, kept as chosen at the time of the tap. */
+type EffectItem = { id: number; strong: boolean; effect: Exclude<TapEffect, 'none'> }
 
 // Shrinks with the digit count so long numbers stay inside the circle. Sized for at least two
 // digits so the number doesn't jump when going from 9 to 10.
@@ -62,16 +65,30 @@ function clamp(value: number, min: number, max: number): number {
 
 type CounterCircleProps = {
   count: number
-  onIncrement: () => void
+  rounds: number
+  /** Count that completes a round; null hides the round label. */
+  target: number | null
+  effect: TapEffect
   diameter: number
   bounds: DragBounds
+  /** Counts one tap and tells whether it completed a round. */
+  onTap: () => boolean
 }
 
 /**
- * The counter: a circle that counts on a quick tap and sends out a ripple. Holding it picks it
- * up, so it can be dragged anywhere on screen without counting.
+ * The counter: a circle that counts on a quick tap and plays the chosen tap effect. Holding it
+ * picks it up, so it can be dragged anywhere on screen without counting.
  */
-export function CounterCircle({ count, onIncrement, diameter, bounds }: CounterCircleProps) {
+export function CounterCircle({
+  count,
+  rounds,
+  target,
+  effect,
+  diameter,
+  bounds,
+  onTap,
+}: CounterCircleProps) {
+  const theme = useTheme()
   const radius = diameter / 2
   const offsetX = useSharedValue(0)
   const offsetY = useSharedValue(0)
@@ -80,8 +97,10 @@ export function CounterCircle({ count, onIncrement, diameter, bounds }: CounterC
   const limits = useSharedValue(bounds)
   const pressed = useSharedValue(0)
   const lifted = useSharedValue(0)
-  const [ripples, setRipples] = useState<number[]>([])
-  const nextRippleId = useRef(0)
+  // Played by tap effects that make the circle itself give under the tap.
+  const circleScale = useSharedValue(1)
+  const [effects, setEffects] = useState<EffectItem[]>([])
+  const nextEffectId = useRef(0)
   const [keyboardFocused, setKeyboardFocused] = useState(false)
 
   // Keep the circle on screen when the available space changes, e.g. on rotation.
@@ -92,22 +111,27 @@ export function CounterCircle({ count, onIncrement, diameter, bounds }: CounterC
   }, [bounds, limits, offsetX, offsetY])
 
   const handleTap = useCallback(() => {
-    onIncrement()
-    const id = nextRippleId.current++
-    setRipples((current) => [...current.slice(1 - MAX_RIPPLES), id])
-  }, [onIncrement])
+    const completedRound = onTap()
+    if (effect === 'none') return
+    const item = { id: nextEffectId.current++, strong: completedRound, effect }
+    setEffects((current) => [...current.slice(1 - MAX_EFFECTS), item])
+  }, [effect, onTap])
 
-  const removeRipple = useCallback((id: number) => {
-    setRipples((current) => current.filter((ripple) => ripple !== id))
+  const removeEffect = useCallback((id: number) => {
+    setEffects((current) => current.filter((item) => item.id !== id))
   }, [])
 
-  // Screen readers hear every new value, like a live region; the starting 0 is not announced.
-  const announcedCount = useRef(count)
+  // Screen readers hear every new value, like a live region, and when a round is complete.
+  // The starting value is not announced.
+  const announced = useRef({ count, rounds })
   useEffect(() => {
-    if (count === announcedCount.current) return
-    announcedCount.current = count
-    AccessibilityInfo.announceForAccessibility(String(count))
-  }, [count])
+    const previous = announced.current
+    if (previous.count === count && previous.rounds === rounds) return
+    announced.current = { count, rounds }
+    AccessibilityInfo.announceForAccessibility(
+      rounds > previous.rounds ? `Round ${rounds} complete` : String(count),
+    )
+  }, [count, rounds])
 
   // The view is square; only touches inside the circle itself count or drag.
   const isInsideCircle = (x: number, y: number) => {
@@ -160,10 +184,17 @@ export function CounterCircle({ count, onIncrement, diameter, bounds }: CounterC
     transform: [{ translateX: offsetX.get() }, { translateY: offsetY.get() }],
   }))
 
-  // Pressing sinks the circle slightly; picking it up lifts it and brightens its edge.
+  // Pressing sinks the circle slightly; picking it up lifts it and brightens its edge. Some tap
+  // effects play its scale too.
+  const accent = theme.accent
   const discStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: (1 - 0.035 * pressed.get()) * (1 + 0.06 * lifted.get()) }],
-    borderColor: ink(0.28 + 0.32 * lifted.get()),
+    transform: [
+      {
+        scale:
+          (1 - 0.035 * pressed.get()) * (1 + 0.06 * lifted.get()) * circleScale.get(),
+      },
+    ],
+    borderColor: rgba(accent, 0.28 + 0.32 * lifted.get()),
   }))
 
   const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
@@ -187,7 +218,7 @@ export function CounterCircle({ count, onIncrement, diameter, bounds }: CounterC
         focusable
         role="button"
         aria-label="Increase count"
-        aria-valuetext={String(count)}
+        aria-valuetext={target === null ? String(count) : `${count}, round ${rounds + 1}`}
         accessibilityActions={ACTIVATE_ACTION}
         onAccessibilityAction={handleAccessibilityAction}
         onClick={handleClick}
@@ -195,26 +226,62 @@ export function CounterCircle({ count, onIncrement, diameter, bounds }: CounterC
         onBlur={() => setKeyboardFocused(false)}
         style={[circleSize, positionStyle]}
       >
-        {ripples.map((id) => (
-          <Ripple key={id} id={id} diameter={diameter} onDone={removeRipple} />
+        {/* Behind the disc: what plays inside the circle shows through its glow. */}
+        {effects.map((item) => (
+          <TapEffectView
+            key={item.id}
+            effect={item.effect}
+            id={item.id}
+            diameter={diameter}
+            strong={item.strong}
+            circleScale={circleScale}
+            onDone={removeEffect}
+          />
         ))}
 
-        <Animated.View style={[styles.disc, circleSize, discStyle]}>
+        <Animated.View
+          style={[styles.disc, circleSize, { backgroundImage: theme.glow }, discStyle]}
+        >
           {/* Visual only: the circle itself carries the value for screen readers. */}
           <Text
             aria-hidden
             allowFontScaling={false}
             numberOfLines={1}
-            style={[styles.count, { fontSize, letterSpacing: fontSize * -0.025 }]}
+            style={[
+              styles.count,
+              { color: rgba(theme.ink, 1), fontSize, letterSpacing: fontSize * -0.025 },
+            ]}
           >
             {count}
           </Text>
+          {target !== null && (
+            <Text
+              aria-hidden
+              allowFontScaling={false}
+              style={[
+                styles.round,
+                {
+                  color: theme.inkMuted,
+                  fontSize: Math.max(diameter * 0.058, 12),
+                  bottom: diameter * 0.16,
+                },
+              ]}
+            >
+              Round {rounds + 1}
+            </Text>
+          )}
         </Animated.View>
 
         {/* Shown while a hardware keyboard focuses the circle on Android; iOS Full Keyboard
             Access draws its own system focus ring. */}
         {keyboardFocused && (
-          <View aria-hidden style={[styles.focusRing, { borderRadius: radius + FOCUS_RING_GAP }]} />
+          <View
+            aria-hidden
+            style={[
+              styles.focusRing,
+              { borderRadius: radius + FOCUS_RING_GAP, borderColor: theme.inkMuted },
+            ]}
+          />
         )}
       </Animated.View>
     </GestureDetector>
@@ -226,15 +293,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: RING_WIDTH,
-    // A faint light pooled just above center; nothing glows outside the circle.
-    backgroundImage: `radial-gradient(circle at 50% 40%, ${ink(0.07)} 0%, ${ink(0.015)} 70%)`,
   },
   count: {
-    color: colors.ink,
     fontWeight: '200',
     fontVariant: ['tabular-nums'],
     textAlign: 'center',
     includeFontPadding: false,
+  },
+  round: {
+    position: 'absolute',
+    letterSpacing: 0.6,
+    fontVariant: ['tabular-nums'],
   },
   focusRing: {
     position: 'absolute',
@@ -243,6 +312,5 @@ const styles = StyleSheet.create({
     bottom: -FOCUS_RING_GAP,
     left: -FOCUS_RING_GAP,
     borderWidth: 2,
-    borderColor: colors.inkMuted,
   },
 })

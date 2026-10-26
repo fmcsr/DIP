@@ -13,6 +13,15 @@ export function vibrateTap(): void {
   )
 }
 
+/** A distinct, affirming pattern when a round is complete. */
+export function vibrateRound(): void {
+  play(
+    Platform.OS === 'android'
+      ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm)
+      : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
+  )
+}
+
 /** Firmer tick when the counter is picked up to be moved. */
 export function vibratePickup(): void {
   play(
