@@ -27,6 +27,12 @@ const CARD_LAYOUT = LinearTransition.duration(220)
 /** Digits the custom target field takes, so targets go up to 99,999. */
 const TARGET_MAX_DIGITS = 5
 
+// Up to iOS 18 an iPhone sheet sits on a black backdrop, so the status bar needs light content
+// whatever the mode. From iOS 26 the counter page stays behind the sheet, only dimmed, and the
+// app's own status bar already suits it.
+const SHEET_ON_BLACK =
+  Platform.OS === 'ios' && !Platform.isPad && Number.parseInt(String(Platform.Version), 10) < 26
+
 type TargetChoice = number | 'off' | 'custom'
 
 /** Off, the targets the person set lately, and Custom for a new one. */
@@ -161,9 +167,8 @@ export function SettingsSheet({
       presentationStyle="pageSheet"
       onRequestClose={close}
     >
-      {/* On iPhone the sheet sits on a black backdrop, so the status bar needs light content
-          whatever the theme. Mounted only while the sheet is open, this overrides the app's own. */}
-      {Platform.OS === 'ios' && !Platform.isPad && <StatusBar style="light" animated />}
+      {/* Mounted only while the sheet is open, this overrides the app's own status bar. */}
+      {SHEET_ON_BLACK && <StatusBar style="light" animated />}
       <View
         style={[
           styles.sheet,
